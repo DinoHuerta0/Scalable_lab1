@@ -146,7 +146,7 @@ resource "aws_instance" "k3s_node" {
   subnet_id              = sort(data.aws_subnets.default.ids)[0]
   vpc_security_group_ids = [aws_security_group.k3s_sg.id]
 
-  user_data = file("${path.module}/user_data.sh")
+  user_data = file("${path.module}/../scripts/user_data.sh")
 
   root_block_device {
     volume_size = 20
