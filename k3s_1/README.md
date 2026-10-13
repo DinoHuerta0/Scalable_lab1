@@ -76,8 +76,11 @@ k3s_1/
 ├── scripts/
 │   └── user_data.sh       # Instala k3s + Traefik y despliega nginx al arrancar
 ├── src/
-│   └── index.html         # Landing page que sirve nginx
-├── docs/                  # Capturas para la sección de Resultados
+│   ├── index.html         # Landing page que sirve nginx
+│   └── styles.css         # Estilos de la landing page
+├── docs/
+│   ├── pods.png           # Evidencia: pods corriendo en k3s
+│   └── webserver.png      # Evidencia: landing page en el navegador
 ├── .gitignore
 └── README.md
 ```
@@ -93,7 +96,7 @@ Todas las variables tienen valor por defecto, así que no hace falta un archivo 
 | `allowed_ssh_cidr` | IP autorizada para SSH y la API de k3s. Si es `null`, se detecta tu IP pública y se usa `/32` | `null` |
 | `project_name` | Prefijo para nombrar los recursos | `k3s-webserver` |
 
-Para modificar la página, edita `src/index.html` y corre `terraform apply`. Terraform la inyecta en `user_data.sh` con `templatefile()`, y como `user_data_replace_on_change = true`, recrea la instancia para que el cambio se aplique (la IP cambiará).
+Para modificar la página, edita `src/index.html` o `src/styles.css` y corre `terraform apply`. Terraform la inyecta en `user_data.sh` con `templatefile()`, y como `user_data_replace_on_change = true`, recrea la instancia para que el cambio se aplique (la IP cambiará).
 
 Para cambiar un valor:
 ```bash

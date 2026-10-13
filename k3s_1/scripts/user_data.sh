@@ -16,8 +16,8 @@ until /usr/local/bin/k3s kubectl get deployment traefik -n kube-system 2>/dev/nu
   sleep 5
 done
 
-# 2. Desplegar el WebServer (nginx) con la landing page de src/index.html,
-#    que Terraform inyecta en la variable index_html mediante templatefile()
+# 2. Desplegar el WebServer (nginx) con la landing page de src/ (index.html y styles.css),
+#    que Terraform inyecta en las variables index_html y styles_css mediante templatefile()
 cat <<'EOF' > /tmp/webserver.yaml
 apiVersion: v1
 kind: ConfigMap
@@ -26,6 +26,8 @@ metadata:
 data:
   index.html: |
     ${indent(4, index_html)}
+  styles.css: |
+    ${indent(4, styles_css)}
 ---
 apiVersion: apps/v1
 kind: Deployment

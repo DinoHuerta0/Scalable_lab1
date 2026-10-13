@@ -146,9 +146,10 @@ resource "aws_instance" "k3s_node" {
   subnet_id              = sort(data.aws_subnets.default.ids)[0]
   vpc_security_group_ids = [aws_security_group.k3s_sg.id]
 
-  # templatefile inyecta la landing page (src/index.html) dentro del script
+  # templatefile inyecta la landing page (src/index.html y src/styles.css) dentro del script
   user_data = templatefile("${path.module}/../scripts/user_data.sh", {
     index_html = file("${path.module}/../src/index.html")
+    styles_css = file("${path.module}/../src/styles.css")
   })
 
   # Si cambia el script o la página, recrear la instancia para que user_data vuelva a correr
