@@ -81,7 +81,6 @@ k3s_1/
 ├── docs/
 │   ├── pods.png           # Evidencia: pods corriendo en k3s
 │   └── webserver.png      # Evidencia: landing page en el navegador
-├── .gitignore
 └── README.md
 ```
 
@@ -235,5 +234,5 @@ rm -f terraform.tfstate.backup ~/.ssh/known_hosts.old
 ---
 
 **Notas**
-- No subas a Git el `.pem` ni los archivos `terraform.tfstate*`: el state contiene la llave privada. Ya están en `.gitignore`.
+- No subas a Git el `.pem` ni los archivos `terraform.tfstate*`: el state contiene la llave privada. Ya están en el `.gitignore` del lab.
 - El output `ssh_command` no lleva comillas alrededor de la ruta, así que si mueves el proyecto a una ruta con espacios, usa `terraform output -raw ssh_command` o pon la ruta entre comillas manualmente.

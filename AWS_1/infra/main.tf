@@ -1,8 +1,26 @@
-provider "aws" {
-  region  = "us-east-1" # You can change this to your preferred region
-  profile = "academy"
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 5.0"
+    }
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 4.0"
+    }
+    local = {
+      source  = "hashicorp/local"
+      version = "~> 2.4"
+    }
+  }
 }
 
+provider "aws" {
+  region  = var.aws_region
+  profile = var.aws_profile
+}
+
+# --- AMI más reciente de Amazon Linux 2023 ---
 data "aws_ami" "amazon_linux_2023" {
   most_recent = true
   owners      = ["amazon"]
@@ -13,8 +31,9 @@ data "aws_ami" "amazon_linux_2023" {
   }
 }
 
+# --- Security Group: HTTP y SSH ---
 resource "aws_security_group" "web_sg" {
-  name        = "web-server-sg"
+  name        = "${var.project_name}-sg"
   description = "Allow HTTP and SSH inbound traffic"
 
   ingress {
@@ -26,11 +45,11 @@ resource "aws_security_group" "web_sg" {
   }
 
   ingress {
-    description = "SSH from anywhere"
+    description = "SSH"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = [var.allowed_ssh_cidr]
   }
 
   egress {
@@ -41,38 +60,76 @@ resource "aws_security_group" "web_sg" {
   }
 
   tags = {
-    Name = "web-server-sg"
+    Name = "${var.project_name}-sg"
   }
 }
 
-resource "aws_instance" "web_server" {
-  ami           = data.aws_ami.amazon_linux_2023.id
-  instance_type = "t2.micro" # Free tier eligible
+# --- Key Pair generado por Terraform (se crea y destruye con el resto) ---
+resource "tls_private_key" "ssh" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
 
+resource "aws_key_pair" "generated" {
+  key_name   = "${var.project_name}-key"
+  public_key = tls_private_key.ssh.public_key_openssh
+}
+
+resource "local_sensitive_file" "private_key" {
+  content         = tls_private_key.ssh.private_key_pem
+  filename        = "${path.module}/${var.project_name}-key.pem"
+  file_permission = "0600"
+}
+
+# --- Instancia EC2 con Apache ---
+resource "aws_instance" "web_server" {
+  ami                    = data.aws_ami.amazon_linux_2023.id
+  instance_type          = var.instance_type
+  key_name               = aws_key_pair.generated.key_name
   vpc_security_group_ids = [aws_security_group.web_sg.id]
 
-  # Basic user data to install and start Apache web server
-  user_data = <<-EOF
-              #!/bin/bash
-              yum update -y
-              yum install -y httpd
-              systemctl start httpd
-              systemctl enable httpd
-              echo "<h1>Hello from your Free Tier EC2 Web Server!</h1>" > /var/www/html/index.html
-              EOF
+  # templatefile inyecta la landing page (src/index.html y src/styles.css) dentro del script
+  user_data = templatefile("${path.module}/../scripts/user_data.sh", {
+    index_html = file("${path.module}/../src/index.html")
+    styles_css = file("${path.module}/../src/styles.css")
+  })
+
+  # Si cambia el script o la pagina, recrear la instancia para que user_data vuelva a correr
+  user_data_replace_on_change = true
 
   tags = {
-    Name = "FreeTierWebServer"
+    Name = "${var.project_name}-instance"
   }
 }
 
-output "public_ip" {
-  value       = aws_instance.web_server.public_ip
-  description = "The public IP address of the web server"
+# --- Restringir el .pem solo a tu usuario (Git Bash en Windows, o Linux/Mac) ---
+# En Windows, file_permission no se traduce a permisos NTFS, por eso se usa icacls.
+# MSYS_NO_PATHCONV=1 evita que Git Bash convierta "/grant:r" en una ruta de archivo.
+resource "terraform_data" "fix_pem_permissions" {
+  triggers_replace = [local_sensitive_file.private_key.id]
+
+  provisioner "local-exec" {
+    interpreter = ["bash", "-c"]
+    command     = <<-EOT
+      KEY="${abspath(local_sensitive_file.private_key.filename)}"
+      if command -v icacls >/dev/null 2>&1; then
+        MSYS_NO_PATHCONV=1 icacls "$KEY" /inheritance:r
+        MSYS_NO_PATHCONV=1 icacls "$KEY" /grant:r "$USERNAME:(F)"
+      else
+        chmod 600 "$KEY"
+      fi
+    EOT
+  }
 }
 
-output "website_url" {
-  value       = "http://${aws_instance.web_server.public_ip}"
-  description = "The URL to access the web server"
-}
+# --- Al destruir la instancia, borrar su huella de ~/.ssh/known_hosts ---
+resource "terraform_data" "known_hosts_cleanup" {
+  input = aws_instance.web_server.public_ip
 
+  provisioner "local-exec" {
+    when        = destroy
+    interpreter = ["bash", "-c"]
+    command     = "ssh-keygen -R ${self.input}"
+    on_failure  = continue
+  }
+}

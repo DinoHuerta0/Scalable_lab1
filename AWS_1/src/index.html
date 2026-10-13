@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Víctor Sebastián Sánchez Silva | Web Page</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <nav class="container">
+      <div class="logo">VS<span>SS</span></div>
+      <ul>
+        <li><a href="#inicio">Inicio</a></li>
+        <li><a href="#proyecto">Proyecto</a></li>
+        <li><a href="#stack">Stack</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <div class="hero container" id="inicio">
+      <div class="tag">Sistemas Escalables</div>
+      <h1>Víctor Sebastián<br><span>Sánchez Silva</span></h1>
+      <p>Web Page servida por Apache en una instancia AWS EC2, con toda la infraestructura definida en Terraform.</p>
+      <a class="btn" href="#proyecto">Ver el proyecto</a>
+    </div>
+
+    <section id="proyecto">
+      <div class="container">
+        <h2>Sobre este proyecto</h2>
+        <p>Esta página la sirve Apache (httpd) instalado directamente en una EC2 de la capa gratuita. El tráfico entra por el puerto 80, permitido por el Security Group, y llega al servidor web de la instancia.</p>
+        <div class="flow">
+          <div class="step">Navegador</div><div class="arrow">→</div>
+          <div class="step">Security Group :80</div><div class="arrow">→</div>
+          <div class="step">EC2 t2.micro</div><div class="arrow">→</div>
+          <div class="step">Apache httpd</div>
+        </div>
+        <div class="meta">
+          <div><span>Instance ID</span><code>__INSTANCE_ID__</code></div>
+          <div><span>Availability Zone</span><code>__AZ__</code></div>
+          <div><span>IP privada</span><code>__PRIVATE_IP__</code></div>
+          <div><span>Tipo de instancia</span><code>__INSTANCE_TYPE__</code></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="stack">
+      <div class="container">
+        <h2>Stack</h2>
+        <p>Tecnologías usadas para construir y desplegar este entorno.</p>
+        <div class="grid">
+          <div class="card"><h3>Terraform</h3><p>Infraestructura como código: Security Group, llave SSH e instancia.</p></div>
+          <div class="card"><h3>AWS EC2</h3><p>Instancia t2.micro de la capa gratuita.</p></div>
+          <div class="card"><h3>Amazon Linux 2023</h3><p>Sistema operativo de la instancia.</p></div>
+          <div class="card"><h3>Security Group</h3><p>Firewall que abre HTTP (80) y SSH (22).</p></div>
+          <div class="card"><h3>Apache httpd</h3><p>Servidor web que entrega esta página.</p></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      © Víctor Sebastián Sánchez Silva · Servido desde <code>__INSTANCE_ID__</code> en <code>__AZ__</code>
+    </div>
+  </footer>
+</body>
+</html>
