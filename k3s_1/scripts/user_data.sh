@@ -16,7 +16,8 @@ until /usr/local/bin/k3s kubectl get deployment traefik -n kube-system 2>/dev/nu
   sleep 5
 done
 
-# 2. Desplegar un WebServer simple (nginx) con una página personalizada
+# 2. Desplegar el WebServer (nginx) con la landing page de src/index.html,
+#    que Terraform inyecta en la variable index_html mediante templatefile()
 cat <<'EOF' > /tmp/webserver.yaml
 apiVersion: v1
 kind: ConfigMap
@@ -24,13 +25,7 @@ metadata:
   name: webserver-html
 data:
   index.html: |
-    <html>
-      <head><title>k3s en EC2</title></head>
-      <body style="font-family: sans-serif; text-align: center; margin-top: 10%;">
-        <h1>¡Funcionando sobre k3s en EC2!</h1>
-        <p>Instancia: $(hostname)</p>
-      </body>
-    </html>
+    ${indent(4, index_html)}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -91,7 +86,7 @@ spec:
                   number: 80
 EOF
 
-# Reemplazar el marcador por el hostname real de la EC2 (el heredoc con 'EOF' no expande variables)
-sed -i "s/\$(hostname)/$(hostname)/" /tmp/webserver.yaml
+# Reemplazar el marcador por el hostname real de la EC2
+sed -i "s/__HOSTNAME__/$(hostname)/" /tmp/webserver.yaml
 
 /usr/local/bin/k3s kubectl apply -f /tmp/webserver.yaml

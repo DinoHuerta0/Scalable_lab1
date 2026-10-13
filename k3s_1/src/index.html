@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Víctor Sebastián Sánchez Silva | Web Page</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <nav class="container">
+      <div class="logo">VS<span>SS</span></div>
+      <ul>
+        <li><a href="#inicio">Inicio</a></li>
+        <li><a href="#proyecto">Proyecto</a></li>
+        <li><a href="#stack">Stack</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <div class="hero container" id="inicio">
+      <div class="tag">Sistemas Escalables</div>
+      <h1>Víctor Sebastián<br><span>Sánchez Silva</span></h1>
+      <p>Web Page desplegada en Kubernetes (k3s) sobre AWS EC2, con toda la infraestructura definida en Terraform.</p>
+      <a class="btn" href="#proyecto">Ver el proyecto</a>
+    </div>
+
+    <section id="proyecto">
+      <div class="container">
+        <h2>Sobre este proyecto</h2>
+        <p>Esta página la sirve un pod de nginx dentro de un clúster k3s. El tráfico entra por Traefik, que lo enruta mediante un Ingress hasta el servicio del WebServer.</p>
+        <div class="flow">
+          <div class="step">Navegador</div><div class="arrow">→</div>
+          <div class="step">Traefik :80</div><div class="arrow">→</div>
+          <div class="step">Ingress</div><div class="arrow">→</div>
+          <div class="step">Service</div><div class="arrow">→</div>
+          <div class="step">Pod nginx</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="stack">
+      <div class="container">
+        <h2>Stack</h2>
+        <p>Tecnologías usadas para construir y desplegar este entorno.</p>
+        <div class="grid">
+          <div class="card"><h3>Terraform</h3><p>Infraestructura como código: red, llave SSH e instancia.</p></div>
+          <div class="card"><h3>AWS EC2</h3><p>Instancia t3.small con Amazon Linux 2023.</p></div>
+          <div class="card"><h3>k3s</h3><p>Kubernetes ligero de un solo nodo.</p></div>
+          <div class="card"><h3>Traefik</h3><p>Ingress Controller incluido en k3s.</p></div>
+          <div class="card"><h3>nginx</h3><p>Servidor web que entrega esta página.</p></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      © Víctor Sebastián Sánchez Silva · Servido desde <code>__HOSTNAME__</code>
+    </div>
+  </footer>
+</body>
+</html>

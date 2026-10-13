@@ -1,7 +1,7 @@
 # EC2 + k3s + Traefik + WebServer con Terraform
 
 > Sistemas Escalables — ITESO
-> Autor(es): Victor Sebastian Huerta Silva
+> Autor(es): Victor Sebastian Sanchez Silva
 > Fecha: 2026-09-12
 
 Despliega con Terraform una instancia EC2 que instala **k3s** al arrancar y publica un **WebServer (nginx)** mediante un **Ingress** atendido por **Traefik**. El objetivo es practicar Kubernetes en un entorno de nube real, sin correr k3s en local.
@@ -75,6 +75,9 @@ k3s_1/
 │   └── outputs.tf         # Comando SSH y URL del WebServer
 ├── scripts/
 │   └── user_data.sh       # Instala k3s + Traefik y despliega nginx al arrancar
+├── src/
+│   └── index.html         # Landing page que sirve nginx
+├── docs/                  # Capturas para la sección de Resultados
 ├── .gitignore
 └── README.md
 ```
@@ -89,6 +92,8 @@ Todas las variables tienen valor por defecto, así que no hace falta un archivo 
 | `instance_type` | Tipo de instancia EC2 | `t3.small` |
 | `allowed_ssh_cidr` | IP autorizada para SSH y la API de k3s. Si es `null`, se detecta tu IP pública y se usa `/32` | `null` |
 | `project_name` | Prefijo para nombrar los recursos | `k3s-webserver` |
+
+Para modificar la página, edita `src/index.html` y corre `terraform apply`. Terraform la inyecta en `user_data.sh` con `templatefile()`, y como `user_data_replace_on_change = true`, recrea la instancia para que el cambio se aplique (la IP cambiará).
 
 Para cambiar un valor:
 ```bash
@@ -165,13 +170,14 @@ curl -v http://localhost
 curl http://<IP_PUBLICA>
 ```
 
-Resultado esperado (pasos 3, 5 y 6):
+Resultado esperado (pasos 3, 5 y 6): el HTML de la landing page, que empieza así:
 ```
-<html>
-  <head><title>k3s en EC2</title></head>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
   ...
-    <h1>¡Funcionando sobre k3s en EC2!</h1>
-    <p>Instancia: ip-172-31-xx-xx...</p>
+  <title>Víctor Sebastián Sánchez Silva | Web Page</title>
 ```
 
 | Resultado | Dónde está el problema |
