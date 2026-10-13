@@ -91,4 +91,7 @@ spec:
                   number: 80
 EOF
 
+# Reemplazar el marcador por el hostname real de la EC2 (el heredoc con 'EOF' no expande variables)
+sed -i "s/\$(hostname)/$(hostname)/" /tmp/webserver.yaml
+
 /usr/local/bin/k3s kubectl apply -f /tmp/webserver.yaml

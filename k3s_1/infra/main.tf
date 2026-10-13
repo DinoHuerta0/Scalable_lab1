@@ -158,15 +158,22 @@ resource "aws_instance" "k3s_node" {
   }
 }
 
-# --- Windows: dejar el .pem solo legible por tu usuario (0400 no aplica en Windows) ---
+# --- Restringir el .pem solo a tu usuario (Git Bash en Windows, o Linux/Mac) ---
+# En Windows, file_permission no se traduce a permisos NTFS, por eso se usa icacls.
+# MSYS_NO_PATHCONV=1 evita que Git Bash convierta "/grant:r" en una ruta de archivo.
 resource "terraform_data" "fix_pem_permissions" {
   triggers_replace = [local_sensitive_file.private_key.id]
 
   provisioner "local-exec" {
-    interpreter = ["PowerShell", "-NoProfile", "-Command"]
+    interpreter = ["bash", "-c"]
     command     = <<-EOT
-      icacls "${abspath(local_sensitive_file.private_key.filename)}" /inheritance:r
-      icacls "${abspath(local_sensitive_file.private_key.filename)}" /grant:r "$${env:USERNAME}:(F)"
+      KEY="${abspath(local_sensitive_file.private_key.filename)}"
+      if command -v icacls >/dev/null 2>&1; then
+        MSYS_NO_PATHCONV=1 icacls "$KEY" /inheritance:r
+        MSYS_NO_PATHCONV=1 icacls "$KEY" /grant:r "$USERNAME:(F)"
+      else
+        chmod 600 "$KEY"
+      fi
     EOT
   }
 }
@@ -177,7 +184,7 @@ resource "terraform_data" "known_hosts_cleanup" {
 
   provisioner "local-exec" {
     when        = destroy
-    interpreter = ["PowerShell", "-NoProfile", "-Command"]
+    interpreter = ["bash", "-c"]
     command     = "ssh-keygen -R ${self.input}"
     on_failure  = continue
   }
